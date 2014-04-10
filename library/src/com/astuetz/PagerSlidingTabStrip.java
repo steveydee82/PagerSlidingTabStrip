@@ -28,6 +28,7 @@ import android.os.Parcel;
 import android.os.Parcelable;
 import android.support.v4.view.ViewPager;
 import android.support.v4.view.ViewPager.OnPageChangeListener;
+import android.text.TextUtils.TruncateAt;
 import android.util.AttributeSet;
 import android.util.DisplayMetrics;
 import android.util.TypedValue;
@@ -44,7 +45,7 @@ import java.util.Locale;
 import com.astuetz.pagerslidingtabstrip.R;
 
 public class PagerSlidingTabStrip extends HorizontalScrollView {
-
+    private static final int TAB_WIDTH = 110;
 	public interface IconTabProvider {
 		public int getPageIconResId(int position);
 	}
@@ -227,12 +228,22 @@ public class PagerSlidingTabStrip extends HorizontalScrollView {
 	private void addTextTab(final int position, String title) {
 
 		TextView tab = new TextView(getContext());
+		tab.setMaxWidth((int)dipToPixels(TAB_WIDTH, getContext()));
+		tab.setMarqueeRepeatLimit(1);
+		tab.setHorizontallyScrolling(true);
+		tab.setEllipsize(TruncateAt.MARQUEE);
 		tab.setText(title);
 		tab.setGravity(Gravity.CENTER);
 		tab.setSingleLine();
 
 		addTab(position, tab);
 	}
+	
+	public static float dipToPixels(float dip, Context c) {
+        float value = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 
+                dip, c.getResources().getDisplayMetrics());
+        return value;
+    }
 
 	private void addIconTab(final int position, int resId) {
 
@@ -243,17 +254,27 @@ public class PagerSlidingTabStrip extends HorizontalScrollView {
 
 	}
 
-	private void addTab(final int position, View tab) {
+	private void addTab(final int position, final View tab) {
 		tab.setFocusable(true);
 		tab.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v) {
 				pager.setCurrentItem(position);
+				unselectAllTabs();
+				tab.setSelected(true);
 			}
 		});
 
 		tab.setPadding(tabPadding, 0, tabPadding, 0);
+		
 		tabsContainer.addView(tab, position, shouldExpand ? expandedTabLayoutParams : defaultTabLayoutParams);
+	}
+	
+	private void unselectAllTabs() {
+	    for (int i = 0; i < tabCount; i++) {
+            View v = tabsContainer.getChildAt(i);
+            v.setSelected(false);
+	    }
 	}
 
 	private void updateTabStyles() {
@@ -359,7 +380,8 @@ public class PagerSlidingTabStrip extends HorizontalScrollView {
 			currentPositionOffset = positionOffset;
 
 			scrollToChild(position, (int) (positionOffset * tabsContainer.getChildAt(position).getWidth()));
-
+			unselectAllTabs();
+			tabsContainer.getChildAt(position).setSelected(true);
 			invalidate();
 
 			if (delegatePageListener != null) {
@@ -384,7 +406,6 @@ public class PagerSlidingTabStrip extends HorizontalScrollView {
 				delegatePageListener.onPageSelected(position);
 			}
 		}
-
 	}
 
 	public void setIndicatorColor(int indicatorColor) {
