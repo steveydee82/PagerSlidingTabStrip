@@ -45,7 +45,7 @@ import java.util.Locale;
 import com.astuetz.pagerslidingtabstrip.R;
 
 public class PagerSlidingTabStrip extends HorizontalScrollView {
-    private static final int TAB_WIDTH = 110;
+    public int TAB_TEXT_MAX_WIDTH = 150;
 	public interface IconTabProvider {
 		public int getPageIconResId(int position);
 	}
@@ -94,7 +94,7 @@ public class PagerSlidingTabStrip extends HorizontalScrollView {
 	private int tabTypefaceStyle = Typeface.BOLD;
 
 	private int lastScrollX = 0;
-
+	private String TAG = "PagerSlidingTabStrip";
 	private int tabBackgroundResId = R.drawable.background_tab;
 
 	private Locale locale;
@@ -226,9 +226,9 @@ public class PagerSlidingTabStrip extends HorizontalScrollView {
 	}
 
 	private void addTextTab(final int position, String title) {
-
+	    Log.i(TAG, "^ addTextTab");
 		TextView tab = new TextView(getContext());
-		tab.setMaxWidth((int)dipToPixels(TAB_WIDTH, getContext()));
+		tab.setMaxWidth((int)dipToPixels(TAB_TEXT_MAX_WIDTH, getContext()));
 		tab.setMarqueeRepeatLimit(1);
 		tab.setHorizontallyScrolling(true);
 		tab.setEllipsize(TruncateAt.MARQUEE);
@@ -260,6 +260,7 @@ public class PagerSlidingTabStrip extends HorizontalScrollView {
 			@Override
 			public void onClick(View v) {
 				pager.setCurrentItem(position);
+				Log.i(TAG, "^ tab onClick");
 				unselectAllTabs();
 				tab.setSelected(true);
 			}
@@ -379,9 +380,12 @@ public class PagerSlidingTabStrip extends HorizontalScrollView {
 			currentPosition = position;
 			currentPositionOffset = positionOffset;
 
-			scrollToChild(position, (int) (positionOffset * tabsContainer.getChildAt(position).getWidth()));
+			scrollToChild(position, tabCount > 0 ? (int) (positionOffset * tabsContainer.getChildAt(position).getWidth()) : 0);
+//			scrollToChild(position, (int) (positionOffset * tabsContainer.getChildAt(position).getWidth()));
 			unselectAllTabs();
-			tabsContainer.getChildAt(position).setSelected(true);
+			if (tabCount>0) {
+			    tabsContainer.getChildAt(position).setSelected(true);
+			}
 			invalidate();
 
 			if (delegatePageListener != null) {
